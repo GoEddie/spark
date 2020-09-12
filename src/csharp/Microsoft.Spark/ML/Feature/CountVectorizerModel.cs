@@ -5,6 +5,8 @@
 using System.Collections.Generic;
 using Microsoft.Spark.Interop;
 using Microsoft.Spark.Interop.Ipc;
+using Microsoft.Spark.Sql;
+using Microsoft.Spark.Sql.Types;
 
 namespace Microsoft.Spark.ML.Feature
 {
@@ -162,6 +164,37 @@ namespace Microsoft.Spark.ML.Feature
         /// <returns>The max size of the vocabulary of type int.</returns>
         public int GetVocabSize() => (int)_jvmObject.Invoke("getVocabSize");
         
+        /// <summary>
+        /// Executes the <see cref="CountVectorizerModel"/> and transforms the
+        /// <see cref="DataFrame"/> to include the new column or columns with the counts.
+        /// </summary>
+        /// <param name="source">The <see cref="DataFrame"/> to add the counts to</param>
+        /// <returns>
+        /// <see cref="DataFrame"/> containing the original data and the text document.
+        /// </returns>
+        public DataFrame Transform(DataFrame source) => 
+            new DataFrame((JvmObjectReference)_jvmObject.Invoke("transform", source));
+
+        /// <summary>
+        /// Check transform validity and derive the output schema from the input schema.
+        /// 
+        /// This checks for validity of interactions between parameters during Transform and
+        /// raises an exception if any parameter value is invalid.
+        ///
+        /// Typical implementation should first conduct verification on schema change and parameter
+        /// validity, including complex parameter interaction checks.
+        /// </summary>
+        /// <param name="value">
+        /// The <see cref="StructType"/> of the <see cref="DataFrame"/> which will be transformed.
+        /// </param>
+        /// <returns>
+        /// The <see cref="StructType"/> of the output schema that would have been derived from the
+        /// input schema, if Transform had been called.
+        /// </returns>
+        public StructType TransformSchema(StructType value) => 
+            new StructType(
+                (JvmObjectReference)_jvmObject.Invoke("transformSchema", 
+                    DataType.FromJson(_jvmObject.Jvm, value.Json)));
         private static CountVectorizerModel WrapAsCountVectorizerModel(object obj) => 
             new CountVectorizerModel((JvmObjectReference)obj);
     }
